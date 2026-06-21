@@ -271,8 +271,9 @@ immediately:
 ### Option A — grab a pre-built release
 
 Download the build for your OS from
-[GitHub Releases](../../releases) — `.dmg` for macOS, `.msi` for
-Windows, `.AppImage` / `.deb` for Linux — and run it.
+[GitHub Releases](../../releases) — `.dmg` for macOS, `.msi` (or the
+installer-free **portable** `.exe`) for Windows, `.AppImage` / `.deb`
+for Linux — and run it.
 
 The release isn't code-signed (no Apple Developer ID, no Authenticode
 cert), so the first launch is gated by the OS:

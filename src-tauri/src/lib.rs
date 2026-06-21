@@ -30,6 +30,19 @@ pub fn main_window() -> Option<tauri::WebviewWindow> {
         .or_else(|| app.webview_windows().into_values().next())
 }
 
+/// Tell any open UI window that the on-disk store changed out-of-band — i.e. a
+/// profile/proxy created or removed through the automation API or MCP, which
+/// writes straight to disk without the React state ever knowing.  The view
+/// listens for `store-changed` and reloads, so the new items appear without an
+/// app restart.  `kind` ("profiles" | "proxies") is informational; the UI
+/// reloads both lists regardless.  No-op when headless (no window).
+pub fn notify_store_changed(kind: &str) {
+    use tauri::Emitter;
+    if let Some(w) = main_window() {
+        let _ = w.emit("store-changed", kind);
+    }
+}
+
 // ---- MCP server download ----
 
 /// Download MCP server source into `<dir>/mcp`; user manages registration.
