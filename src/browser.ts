@@ -195,12 +195,13 @@ export class Browser {
     if (opts.extraArgs) argv.push(...opts.extraArgs);
 
     if(opts.returnMode === "args") {
+      const child = spawn(process.execPath, ["-e", ""], {
+        env: { ...process.env, ...(opts.env ?? {}) },
+        stdio: "ignore",
+        detached: process.platform !== "win32",
+      });
       return new BrowserSession(
-        0, udd, null, spawn("echo ''", {
-          env: { ...process.env, ...(opts.env ?? {}) },
-          stdio: "ignore",
-          detached: process.platform !== "win32",
-        }), proxyUdpMs, quicEnabled, webrtcMode, geo, argv, this.runtime.binaryPath
+        child.pid!, udd, null, child, proxyUdpMs, quicEnabled, webrtcMode, geo, argv, this.runtime.binaryPath
       );
     }
 
