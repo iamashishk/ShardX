@@ -174,7 +174,6 @@ export class Runtime {
     // ---- install ----
     async install(opts = {}, attempt = 1) {
         const force = !!opts.force;
-        this.installLog("Runtime.install() ENTER", `force=${opts.force}`, `attempt=${attempt}`, `binaryExists=${existsSync(this.binaryPath)}`, new Error().stack);
         if (this._checkedInProcess && !force)
             return;
         const local = this.loadManifest();
@@ -200,12 +199,11 @@ export class Runtime {
         if (!needBrowser && remote.chromiumVersion !== undefined) {
             needBrowser = this.effectiveInstalledVersion(local) !== remote.chromiumVersion;
         }
-        this.installLog("Decision", `needBrowser=${needBrowser}`, `installed=${this.installed}`, `localVersion=${this.effectiveInstalledVersion(local)}`, `remoteVersion=${remote.chromiumVersion}`, `manifestExists=${existsSync(this.manifestPath)}`);
         if (needBrowser) {
             // Wipe the old engine tree first so a leftover `<old>.manifest` / stale
             // libs can't linger beside the new ones (that pinned the detected version
             // → endless re-download). binarySubpath[0] is the engine root dir.
-            this.installLog("REMOVING ENGINE", join(this.root, this.spec.binarySubpath[0]), new Error("Engine removal").stack);
+            this.installLog("REMOVING ENGINE", join(this.root, this.spec.binarySubpath[0]), `force=${opts.force}`, `attempt=${attempt}`, `binaryExists=${existsSync(this.binaryPath)}`, `needBrowser=${needBrowser}`, `installed=${this.installed}`, `localVersion=${this.effectiveInstalledVersion(local)}`, `remoteVersion=${remote.chromiumVersion}`, `manifestExists=${existsSync(this.manifestPath)}`, new Error("Engine removal").stack);
             rmSync(join(this.root, this.spec.binarySubpath[0]), { recursive: true, force: true });
             local.browser_etag = await this.downloadAndExtract(this.spec.browser, this.root);
         }

@@ -203,13 +203,6 @@ export class Runtime {
 
   async install(opts: { force?: boolean } = {},attempt = 1): Promise<void> {
     const force = !!opts.force;
-    this.installLog(
-      "Runtime.install() ENTER",
-      `force=${opts.force}`,
-      `attempt=${attempt}`,
-      `binaryExists=${existsSync(this.binaryPath)}`,
-      new Error().stack
-    );
     if (this._checkedInProcess && !force) return;
     const local = this.loadManifest();
     const remote = await this.fetchManifest();
@@ -234,15 +227,7 @@ export class Runtime {
     if (!needBrowser && remote.chromiumVersion !== undefined) {
       needBrowser = this.effectiveInstalledVersion(local) !== remote.chromiumVersion;
     }
-    this.installLog(
-      "Decision",
-      `needBrowser=${needBrowser}`,
-      `installed=${this.installed}`,
-      `localVersion=${this.effectiveInstalledVersion(local)}`,
-      `remoteVersion=${remote.chromiumVersion}`,
-      `manifestExists=${existsSync(this.manifestPath)}`
-    );
-
+    
     if (needBrowser) {
       // Wipe the old engine tree first so a leftover `<old>.manifest` / stale
       // libs can't linger beside the new ones (that pinned the detected version
@@ -250,6 +235,14 @@ export class Runtime {
       this.installLog(
         "REMOVING ENGINE",
         join(this.root, this.spec.binarySubpath[0]),
+        `force=${opts.force}`,
+        `attempt=${attempt}`,
+        `binaryExists=${existsSync(this.binaryPath)}`,
+        `needBrowser=${needBrowser}`,
+        `installed=${this.installed}`,
+        `localVersion=${this.effectiveInstalledVersion(local)}`,
+        `remoteVersion=${remote.chromiumVersion}`,
+        `manifestExists=${existsSync(this.manifestPath)}`,
         new Error("Engine removal").stack
       );
       rmSync(join(this.root, this.spec.binarySubpath[0]), { recursive: true, force: true });
