@@ -116,7 +116,7 @@ export class Browser {
     // Auto-install on first use (high-level ShardX.launch already does
     // this; the call is here too so low-level Browser.launch users
     // don't have to remember).
-    if (opts.checkInstalled ?? true) {
+    if (opts.checkInstalled ?? !this.runtime.checkManifest()) {
       await this.runtime.install();
     }
 

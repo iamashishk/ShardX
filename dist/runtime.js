@@ -2,7 +2,7 @@
 // library from the ProxyShard CDN, extract into a per-user cache dir,
 // place Widevine inside the engine bundle, remember etags so subsequent
 // runs are zero-network. Mirrors src-tauri/src/runtime.rs in the launcher.
-import { closeSync, createWriteStream, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, rmSync, writeFileSync, chmodSync, copyFileSync, lstatSync } from "node:fs";
+import { closeSync, createWriteStream, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, rmSync, statSync, writeFileSync, chmodSync, copyFileSync, lstatSync } from "node:fs";
 import { homedir, platform as osPlatform, arch as osArch } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
@@ -144,16 +144,33 @@ export class Runtime {
             return {};
         }
     }
+    checkManifest() {
+        try {
+            return existsSync(this.manifestPath) && statSync(this.manifestPath).size > 0;
+        }
+        catch {
+            return false;
+        }
+    }
     saveManifest(m) {
         writeFileSync(this.manifestPath, JSON.stringify(m, null, 2));
     }
     // ---- install ----
-    async install(opts = {}) {
+    async install(opts = {}, attempt = 1) {
         const force = !!opts.force;
         if (this._checkedInProcess && !force)
             return;
         const local = this.loadManifest();
         const remote = await this.fetchManifest();
+        if (Object.keys(remote).length <= 1) {
+            if (attempt <= 3) {
+                return this.install(opts, attempt + 1);
+            }
+            else {
+                console.log("Unable to fetch manifest from remote.");
+                return;
+            }
+        }
         // Remember the engine version + grease so launch can normalise profiles.
         this._chromiumVersion = remote.chromiumVersion ?? CHROMIUM_VERSION;
         this._greaseBrand = remote.greaseBrand;

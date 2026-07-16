@@ -59,10 +59,11 @@ export declare class Runtime {
      *  detection is the fallback for legacy installs with no recorded version. */
     private effectiveInstalledVersion;
     private loadManifest;
+    checkManifest(): boolean;
     private saveManifest;
     install(opts?: {
         force?: boolean;
-    }): Promise<void>;
+    }, attempt?: number): Promise<void>;
     /** Fetch the version manifest (GitHub raw) — one request that yields every
      *  archive's current etag + the chromium version, replacing per-archive HEADs
      *  against R2/S3. Empty archives / undefined version when unreachable. */

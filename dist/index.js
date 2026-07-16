@@ -113,7 +113,7 @@ export class ShardX {
                     "the returned profile.");
             }
         }
-        if (opts.checkInstalled ?? true) {
+        if (opts.checkInstalled ?? !this.runtime.checkManifest()) {
             await this.runtime.install();
         }
         if (opts.randomize) {

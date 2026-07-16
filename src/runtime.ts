@@ -169,17 +169,29 @@ export class Runtime {
     try { return JSON.parse(readFileSync(this.manifestPath, "utf8")); }
     catch { return {}; }
   }
+  checkManifest(): boolean {
+    try { return existsSync(this.manifestPath) && statSync(this.manifestPath).size > 0; }
+    catch { return false; }
+  }
   private saveManifest(m: Manifest): void {
     writeFileSync(this.manifestPath, JSON.stringify(m, null, 2));
   }
 
   // ---- install ----
 
-  async install(opts: { force?: boolean } = {}): Promise<void> {
+  async install(opts: { force?: boolean } = {},attempt = 1): Promise<void> {
     const force = !!opts.force;
     if (this._checkedInProcess && !force) return;
     const local = this.loadManifest();
     const remote = await this.fetchManifest();
+    if(Object.keys(remote).length <= 1){
+      if(attempt <= 3){
+        return this.install(opts, attempt + 1);
+      }else{
+        console.log("Unable to fetch manifest from remote.");
+        return;
+      }
+    }
     // Remember the engine version + grease so launch can normalise profiles.
     this._chromiumVersion = remote.chromiumVersion ?? CHROMIUM_VERSION;
     this._greaseBrand = remote.greaseBrand;

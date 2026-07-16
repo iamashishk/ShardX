@@ -146,7 +146,7 @@ export class ShardX {
         );
       }
     }
-    if(opts.checkInstalled ?? true){
+    if(opts.checkInstalled ?? !this.runtime.checkManifest()){
       await this.runtime.install();
     }
     if (opts.randomize) {
