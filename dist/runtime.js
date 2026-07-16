@@ -145,7 +145,7 @@ export class Runtime {
         }
     }
     checkManifest() {
-        return false;
+        return true;
         try {
             return existsSync(this.manifestPath) && statSync(this.manifestPath).size > 0;
         }

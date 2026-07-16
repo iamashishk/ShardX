@@ -170,7 +170,7 @@ export class Runtime {
     catch { return {}; }
   }
   checkManifest(): boolean {
-    return false;
+    return true;
     try { return existsSync(this.manifestPath) && statSync(this.manifestPath).size > 0; }
     catch { return false; }
   }
