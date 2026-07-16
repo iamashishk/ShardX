@@ -1,0 +1,1 @@
+{"version":3,"file":"screen.d.ts","sourceRoot":"","sources":["../src/screen.ts"],"names":[],"mappings":"AAaA,MAAM,MAAM,cAAc,GAAG,SAAS,GAAG,aAAa,GAAG,UAAU,CAAC;AAEpE,wBAAgB,mBAAmB,CAAC,GAAG,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,EAAE,IAAI,EAAE,cAAc,GAAG,MAAM,GAAG,IAAI,CAOrG;AAuDD,qEAAqE;AACrE,wBAAgB,oBAAoB,CAAC,QAAQ,EAAE,MAAM,GAAG,cAAc,CAIrE"}
