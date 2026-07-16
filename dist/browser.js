@@ -111,7 +111,7 @@ export class Browser {
         // ---- pre-launch: auto-resolve, screen strategy, UDP probe ------
         let geo = null;
         if (hasAutoFields(profile.config)) {
-            geo = await resolveAutoFields(profile.config, parsed, opts.geoProvider ?? null);
+            geo = (await resolveAutoFields(profile.config, parsed, opts.geoProvider ?? null)).geo ?? null;
         }
         const mode = opts.screenMode ?? defaultScreenModeFor(profile.platform);
         applyScreenStrategy(profile.config, mode);
