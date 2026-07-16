@@ -59,6 +59,9 @@ function applyNoiseSeeds(config: Record<string, unknown>, id: string): void {
 }
 
 export interface LaunchOptions {
+  checkInstalled?: boolean;
+  geoProvider?: { url: string; callback: Function } | null,
+  returnMode?: "browser" | "args";
   proxy?: string;
   cdp?: boolean;
   headless?: boolean;
@@ -87,6 +90,8 @@ export class BrowserSession {
     readonly quicEnabled: boolean = false,
     readonly webrtcMode: WebRtcMode = "auto",
     readonly geo: GeoInfo | null = null,
+    readonly args: string[] | undefined = undefined,
+    readonly binaryPath: string | undefined = undefined,
   ) {}
 
   async stop(timeoutMs = 5000): Promise<void> {
@@ -111,14 +116,16 @@ export class Browser {
     // Auto-install on first use (high-level ShardX.launch already does
     // this; the call is here too so low-level Browser.launch users
     // don't have to remember).
-    await this.runtime.install();
+    if (opts.checkInstalled ?? true) {
+      await this.runtime.install();
+    }
 
     const parsed: ParsedProxy | null = opts.proxy ? parseProxy(opts.proxy) : null;
 
     // ---- pre-launch: auto-resolve, screen strategy, UDP probe ------
     let geo: GeoInfo | null = null;
     if (hasAutoFields(profile.config)) {
-      geo = await resolveAutoFields(profile.config, parsed);
+      geo = await resolveAutoFields(profile.config, parsed, opts.geoProvider ?? null);
     }
 
     const mode: ScreenStrategy = opts.screenMode ?? defaultScreenModeFor(profile.platform);
@@ -175,7 +182,7 @@ export class Browser {
       // sentinels, otherwise the engine falls back to the host IP.
       let ip = opts.webrtcPublicIp ?? geo?.ip;
       if (!ip && parsed) {
-        try { ip = (await geoCheckVia(parsed)).ip || undefined; } catch { /* leave undefined */ }
+        try { ip = (await geoCheckVia(parsed, "ip-api.com", opts.geoProvider ?? null)).ip || undefined; } catch { /* leave undefined */ }
       }
       if (ip) argv.push(`--shardx-webrtc-public-ip=${ip}`);
     }
@@ -187,6 +194,16 @@ export class Browser {
     if (opts.headless) argv.push("--headless=new");
     if (opts.extraArgs) argv.push(...opts.extraArgs);
 
+    if(opts.returnMode === "args") {
+      return new BrowserSession(
+        0, udd, null, spawn("echo ''", {
+          env: { ...process.env, ...(opts.env ?? {}) },
+          stdio: "ignore",
+          detached: process.platform !== "win32",
+        }), proxyUdpMs, quicEnabled, webrtcMode, geo, argv, this.runtime.binaryPath
+      );
+    }
+
     const child = spawn(this.runtime.binaryPath, argv, {
       env: { ...process.env, ...(opts.env ?? {}) },
       stdio: "ignore",
@@ -195,7 +212,7 @@ export class Browser {
 
     const cdpUrl = opts.cdp ? await readCdpEndpoint(udd, 15_000) : null;
     return new BrowserSession(
-      child.pid!, udd, cdpUrl, child, proxyUdpMs, quicEnabled, webrtcMode, geo,
+      child.pid!, udd, cdpUrl, child, proxyUdpMs, quicEnabled, webrtcMode, geo, argv, this.runtime.binaryPath
     );
   }
 }

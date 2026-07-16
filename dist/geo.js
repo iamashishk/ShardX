@@ -81,8 +81,11 @@ async function fetchJson(url, proxy, timeoutMs) {
  * Probe the geo `proxy` exits at, or direct geo when `proxy` is null.
  * Throws on network error or provider-level fail (e.g. ip-api.com status=fail).
  */
-export async function geoCheckVia(proxy, provider = "ip-api.com") {
-    const url = URLS[provider] ?? URLS["ip-api.com"];
+export async function geoCheckVia(proxy, provider = "ip-api.com", directProvider = null) {
+    let url = URLS[provider] ?? URLS["ip-api.com"];
+    if (directProvider && typeof directProvider.url === "string" && typeof directProvider.callback === "function") {
+        url = directProvider.url;
+    }
     const body = await fetchJson(url, proxy, 8000);
     const s = (k) => (typeof body[k] === "string" ? body[k] : "");
     const f = (k) => {
@@ -90,6 +93,9 @@ export async function geoCheckVia(proxy, provider = "ip-api.com") {
         const n = typeof v === "number" ? v : Number(v);
         return Number.isFinite(n) ? n : 0;
     };
+    if (directProvider && typeof directProvider.url === "string" && typeof directProvider.callback === "function") {
+        return directProvider.callback(body);
+    }
     if (provider === "ip-api.com") {
         if (s("status") === "fail")
             throw new Error(`ip-api.com: ${s("message") || "unknown error"}`);

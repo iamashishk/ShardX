@@ -102,8 +102,12 @@ async function fetchJson(url: string, proxy: ParsedProxy | null, timeoutMs: numb
 export async function geoCheckVia(
   proxy: ParsedProxy | null,
   provider: GeoProvider | string = "ip-api.com",
+  directProvider: { url: string; callback: Function } | null = null,
 ): Promise<GeoInfo> {
-  const url = URLS[provider] ?? URLS["ip-api.com"];
+  let url = URLS[provider] ?? URLS["ip-api.com"];
+  if (directProvider && typeof directProvider.url === "string" && typeof directProvider.callback === "function") {
+    url = directProvider.url;
+  }
   const body = await fetchJson(url, proxy, 8000) as Record<string, any>;
 
   const s = (k: string): string => (typeof body[k] === "string" ? body[k] : "");
@@ -112,6 +116,10 @@ export async function geoCheckVia(
     const n = typeof v === "number" ? v : Number(v);
     return Number.isFinite(n) ? n : 0;
   };
+
+  if (directProvider && typeof directProvider.url === "string" && typeof directProvider.callback === "function") {
+    return directProvider.callback(body);
+  }
 
   if (provider === "ip-api.com") {
     if (s("status") === "fail") throw new Error(`ip-api.com: ${s("message") || "unknown error"}`);

@@ -12,25 +12,7 @@ import { geoCheckVia } from "./geo.js";
 function countryToLocale(cc) {
     return CC_TO_LOCALE[(cc ?? "").toUpperCase()] ?? "en-US";
 }
-const CC_TO_LOCALE = {
-    US: "en-US", GB: "en-GB", UK: "en-GB", CA: "en-CA",
-    AU: "en-AU", NZ: "en-NZ", IE: "en-IE", ZA: "en-ZA", IN: "en-IN",
-    DE: "de-DE", AT: "de-AT", CH: "de-CH",
-    FR: "fr-FR", BE: "fr-BE",
-    ES: "es-ES", MX: "es-MX", AR: "es-AR", CO: "es-CO", CL: "es-CL",
-    IT: "it-IT", NL: "nl-NL", PL: "pl-PL",
-    BR: "pt-BR", PT: "pt-PT",
-    RO: "ro-RO", RU: "ru-RU", BY: "be-BY", UA: "uk-UA",
-    TR: "tr-TR", GR: "el-GR",
-    CZ: "cs-CZ", SK: "sk-SK", HU: "hu-HU",
-    SE: "sv-SE", FI: "fi-FI", NO: "nb-NO", DK: "da-DK",
-    BG: "bg-BG", HR: "hr-HR", SI: "sl-SI", RS: "sr-RS",
-    IL: "he-IL",
-    SA: "ar-SA", AE: "ar-SA", EG: "ar-SA",
-    ID: "id-ID", MY: "ms-MY", PH: "fil-PH", VN: "vi-VN", TH: "th-TH",
-    CN: "zh-CN", HK: "zh-HK", TW: "zh-TW",
-    JP: "ja-JP", KR: "ko-KR",
-};
+const CC_TO_LOCALE = { US: "en-US", CA: "en-CA", MX: "es-MX", AR: "es-AR", BO: "es-BO", BR: "pt-BR", CL: "es-CL", CO: "es-CO", EC: "es-EC", GY: "en-GY", PE: "es-PE", PY: "es-PY", SR: "nl-SR", UY: "es-UY", VE: "es-VE", AL: "sq-AL", AD: "ca-AD", AT: "de-AT", BE: "nl-BE", BG: "bg-BG", BY: "be-BY", CH: "de-CH", CY: "el-CY", CZ: "cs-CZ", DE: "de-DE", DK: "da-DK", EE: "et-EE", ES: "es-ES", FI: "fi-FI", FR: "fr-FR", GB: "en-GB", GR: "el-GR", HR: "hr-HR", HU: "hu-HU", IE: "en-IE", IS: "is-IS", IT: "it-IT", LT: "lt-LT", LU: "fr-LU", LV: "lv-LV", MC: "fr-MC", MD: "ro-MD", ME: "sr-ME", MK: "mk-MK", MT: "mt-MT", NL: "nl-NL", NO: "nb-NO", PL: "pl-PL", PT: "pt-PT", RO: "ro-RO", RS: "sr-RS", RU: "ru-RU", SE: "sv-SE", SI: "sl-SI", SK: "sk-SK", SM: "it-SM", UA: "uk-UA", VA: "it-VA", AE: "ar-AE", AF: "fa-AF", AM: "hy-AM", AZ: "az-AZ", BD: "bn-BD", BH: "ar-BH", BN: "ms-BN", CN: "zh-CN", GE: "ka-GE", HK: "zh-HK", ID: "id-ID", IL: "he-IL", IN: "en-IN", IQ: "ar-IQ", IR: "fa-IR", JO: "ar-JO", JP: "ja-JP", KG: "ky-KG", KH: "km-KH", KP: "ko-KP", KR: "ko-KR", KW: "ar-KW", KZ: "kk-KZ", LA: "lo-LA", LB: "ar-LB", LK: "si-LK", MM: "my-MM", MN: "mn-MN", MO: "zh-MO", MY: "ms-MY", NP: "ne-NP", OM: "ar-OM", PH: "fil-PH", PK: "ur-PK", QA: "ar-QA", SA: "ar-SA", SG: "en-SG", SY: "ar-SY", TH: "th-TH", TJ: "tg-TJ", TM: "tk-TM", TW: "zh-TW", UZ: "uz-UZ", VN: "vi-VN", YE: "ar-YE", DZ: "ar-DZ", AO: "pt-AO", BW: "en-BW", CM: "fr-CM", EG: "ar-EG", ET: "am-ET", GH: "en-GH", KE: "sw-KE", MA: "ar-MA", MU: "en-MU", MZ: "pt-MZ", NA: "en-NA", NG: "en-NG", RW: "rw-RW", SN: "fr-SN", TN: "ar-TN", TZ: "sw-TZ", UG: "en-UG", ZA: "en-ZA", ZM: "en-ZM", ZW: "en-ZW", AU: "en-AU", FJ: "en-FJ", NZ: "en-NZ", PG: "en-PG", WS: "sm-WS" };
 /** Country → IANA timezone fallback for providers that omit timezone.
  *  Ported 1:1 from launcher's Rust `country_to_timezone`. */
 function countryToTimezone(cc) {
@@ -102,7 +84,7 @@ function hostLocale() {
  * resolution, or null when both proxy + direct probes failed and the host
  * fallback was used.
  */
-export async function resolveAutoFields(cfg, proxy) {
+export async function resolveAutoFields(cfg, proxy, directProvider = null) {
     const wantTz = cfg["timezone"] === "auto";
     const nav = cfg["navigator"];
     const wantLang = !!(nav && nav["language"] === "auto");
@@ -113,7 +95,7 @@ export async function resolveAutoFields(cfg, proxy) {
     let geo = null;
     if (proxy) {
         try {
-            geo = await geoCheckVia(proxy);
+            geo = await geoCheckVia(proxy, "ip-api.com", directProvider);
         }
         catch {
             geo = null;
@@ -121,7 +103,7 @@ export async function resolveAutoFields(cfg, proxy) {
     }
     if (!geo) {
         try {
-            geo = await geoCheckVia(null);
+            geo = await geoCheckVia(null, "ip-api.com", directProvider);
         }
         catch {
             geo = null;
@@ -176,6 +158,9 @@ export async function resolveAutoFields(cfg, proxy) {
             delete cfg["geolocation"];
         }
     }
-    return geo;
+    return {
+        config: cfg,
+        geo: geo,
+    };
 }
 //# sourceMappingURL=autoResolve.js.map

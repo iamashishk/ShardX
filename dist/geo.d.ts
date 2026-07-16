@@ -20,5 +20,8 @@ export interface GeoInfo {
  * Probe the geo `proxy` exits at, or direct geo when `proxy` is null.
  * Throws on network error or provider-level fail (e.g. ip-api.com status=fail).
  */
-export declare function geoCheckVia(proxy: ParsedProxy | null, provider?: GeoProvider | string): Promise<GeoInfo>;
+export declare function geoCheckVia(proxy: ParsedProxy | null, provider?: GeoProvider | string, directProvider?: {
+    url: string;
+    callback: Function;
+} | null): Promise<GeoInfo>;
 //# sourceMappingURL=geo.d.ts.map

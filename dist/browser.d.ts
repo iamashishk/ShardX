@@ -7,6 +7,12 @@ export type WebRtcMode = "auto" | "block" | "tcp_only";
 /** Legacy alias retained for back-compat; prefer `ScreenStrategy`. */
 export type ScreenMode = ScreenStrategy;
 export interface LaunchOptions {
+    checkInstalled?: boolean;
+    geoProvider?: {
+        url: string;
+        callback: Function;
+    } | null;
+    returnMode?: "browser" | "args";
     proxy?: string;
     cdp?: boolean;
     headless?: boolean;
@@ -31,8 +37,10 @@ export declare class BrowserSession {
     readonly quicEnabled: boolean;
     readonly webrtcMode: WebRtcMode;
     readonly geo: GeoInfo | null;
+    readonly args: string[] | undefined;
+    readonly binaryPath: string | undefined;
     private _stopped;
-    constructor(pid: number, userDataDir: string, cdpUrl: string | null, process: ChildProcess, proxyUdpMs?: number | null, quicEnabled?: boolean, webrtcMode?: WebRtcMode, geo?: GeoInfo | null);
+    constructor(pid: number, userDataDir: string, cdpUrl: string | null, process: ChildProcess, proxyUdpMs?: number | null, quicEnabled?: boolean, webrtcMode?: WebRtcMode, geo?: GeoInfo | null, args?: string[] | undefined, binaryPath?: string | undefined);
     stop(timeoutMs?: number): Promise<void>;
 }
 export declare class Browser {

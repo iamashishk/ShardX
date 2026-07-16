@@ -15,7 +15,7 @@ Driven by [patchright](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright)
 ## Install
 
 ```bash
-npm install @proxyshard/shardx
+npm install iamashishk/ShardX#main
 ```
 
 Supported hosts: **macOS arm64**, **Windows x64**, **Linux x64**. Node ≥ 18.

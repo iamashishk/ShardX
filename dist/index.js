@@ -113,7 +113,9 @@ export class ShardX {
                     "the returned profile.");
             }
         }
-        await this.runtime.install();
+        if (opts.checkInstalled ?? true) {
+            await this.runtime.install();
+        }
         if (opts.randomize) {
             randomizeHardware(profile.config, profile.id);
             randomizePlatformVersion(profile.config);

@@ -58,8 +58,10 @@ export class BrowserSession {
     quicEnabled;
     webrtcMode;
     geo;
+    args;
+    binaryPath;
     _stopped = false;
-    constructor(pid, userDataDir, cdpUrl, process, proxyUdpMs = null, quicEnabled = false, webrtcMode = "auto", geo = null) {
+    constructor(pid, userDataDir, cdpUrl, process, proxyUdpMs = null, quicEnabled = false, webrtcMode = "auto", geo = null, args = undefined, binaryPath = undefined) {
         this.pid = pid;
         this.userDataDir = userDataDir;
         this.cdpUrl = cdpUrl;
@@ -68,6 +70,8 @@ export class BrowserSession {
         this.quicEnabled = quicEnabled;
         this.webrtcMode = webrtcMode;
         this.geo = geo;
+        this.args = args;
+        this.binaryPath = binaryPath;
     }
     async stop(timeoutMs = 5000) {
         if (this._stopped)
@@ -100,12 +104,14 @@ export class Browser {
         // Auto-install on first use (high-level ShardX.launch already does
         // this; the call is here too so low-level Browser.launch users
         // don't have to remember).
-        await this.runtime.install();
+        if (opts.checkInstalled ?? true) {
+            await this.runtime.install();
+        }
         const parsed = opts.proxy ? parseProxy(opts.proxy) : null;
         // ---- pre-launch: auto-resolve, screen strategy, UDP probe ------
         let geo = null;
         if (hasAutoFields(profile.config)) {
-            geo = await resolveAutoFields(profile.config, parsed);
+            geo = await resolveAutoFields(profile.config, parsed, opts.geoProvider ?? null);
         }
         const mode = opts.screenMode ?? defaultScreenModeFor(profile.platform);
         applyScreenStrategy(profile.config, mode);
@@ -157,7 +163,7 @@ export class Browser {
             let ip = opts.webrtcPublicIp ?? geo?.ip;
             if (!ip && parsed) {
                 try {
-                    ip = (await geoCheckVia(parsed)).ip || undefined;
+                    ip = (await geoCheckVia(parsed, "ip-api.com", opts.geoProvider ?? null)).ip || undefined;
                 }
                 catch { /* leave undefined */ }
             }
@@ -174,13 +180,20 @@ export class Browser {
             argv.push("--headless=new");
         if (opts.extraArgs)
             argv.push(...opts.extraArgs);
+        if (opts.returnMode === "args") {
+            return new BrowserSession(0, udd, null, spawn("echo ''", {
+                env: { ...process.env, ...(opts.env ?? {}) },
+                stdio: "ignore",
+                detached: process.platform !== "win32",
+            }), proxyUdpMs, quicEnabled, webrtcMode, geo, argv, this.runtime.binaryPath);
+        }
         const child = spawn(this.runtime.binaryPath, argv, {
             env: { ...process.env, ...(opts.env ?? {}) },
             stdio: "ignore",
             detached: process.platform !== "win32",
         });
         const cdpUrl = opts.cdp ? await readCdpEndpoint(udd, 15_000) : null;
-        return new BrowserSession(child.pid, udd, cdpUrl, child, proxyUdpMs, quicEnabled, webrtcMode, geo);
+        return new BrowserSession(child.pid, udd, cdpUrl, child, proxyUdpMs, quicEnabled, webrtcMode, geo, argv, this.runtime.binaryPath);
     }
 }
 async function readCdpEndpoint(udd, timeoutMs) {

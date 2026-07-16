@@ -1,4 +1,3 @@
-import { type GeoInfo } from "./geo.js";
 import type { ParsedProxy } from "./proxy.js";
 export declare function hasAutoFields(cfg: Record<string, unknown>): boolean;
 /**
@@ -6,5 +5,8 @@ export declare function hasAutoFields(cfg: Record<string, unknown>): boolean;
  * resolution, or null when both proxy + direct probes failed and the host
  * fallback was used.
  */
-export declare function resolveAutoFields(cfg: Record<string, unknown>, proxy: ParsedProxy | null): Promise<GeoInfo | null>;
+export declare function resolveAutoFields(cfg: Record<string, unknown>, proxy: ParsedProxy | null, directProvider?: {
+    url: string;
+    callback: Function;
+} | null): Promise<any | null>;
 //# sourceMappingURL=autoResolve.d.ts.map
