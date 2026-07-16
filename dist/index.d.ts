@@ -31,10 +31,12 @@ export declare class ShardX {
      *  Auto-installs the fingerprint library on first call. */
     listProfiles(opts?: {
         platform?: string;
+        checkInstalled?: boolean;
     }): Promise<string[]>;
     /** Pick a random profile from the library.  Auto-installs on first call. */
     randomProfile(opts?: {
         platform?: string;
+        checkInstalled?: boolean;
     }): Promise<Profile>;
     /** Create a new persistent profile from a library template (or a random one
      *  when `template` is omitted), enriched with randomized hardware +
@@ -42,6 +44,7 @@ export declare class ShardX {
      *  with `launch(profile, { randomize: false })`. */
     createProfile(template?: string, opts?: {
         platform?: string;
+        checkInstalled?: boolean;
     }): Promise<Profile>;
     /** Persist a profile's current config to its on-disk folder. Call after
      *  mutating a reopened profile (e.g. `setNoise`) to keep changes. */

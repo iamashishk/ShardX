@@ -22,7 +22,9 @@ export class ShardX {
     /** All bundled fingerprint ids, optionally filtered by `navigator.platform`.
      *  Auto-installs the fingerprint library on first call. */
     async listProfiles(opts = {}) {
-        await this.runtime.install();
+        if (opts.checkInstalled ?? !this.runtime.checkManifest()) {
+            await this.runtime.install();
+        }
         return opts.platform ? Array.from(this.library.filter({ platform: opts.platform })) : this.library.ids();
     }
     /** Pick a random profile from the library.  Auto-installs on first call. */
@@ -45,7 +47,9 @@ export class ShardX {
      *  platform_version under a fresh unique id, and frozen to disk. Launch it
      *  with `launch(profile, { randomize: false })`. */
     async createProfile(template, opts = {}) {
-        await this.runtime.install();
+        if (opts.checkInstalled ?? !this.runtime.checkManifest()) {
+            await this.runtime.install();
+        }
         const src = template == null
             ? await this.randomProfile({ platform: opts.platform })
             : this.library.load(template);

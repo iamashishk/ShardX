@@ -47,13 +47,15 @@ export class ShardX {
 
   /** All bundled fingerprint ids, optionally filtered by `navigator.platform`.
    *  Auto-installs the fingerprint library on first call. */
-  async listProfiles(opts: { platform?: string } = {}): Promise<string[]> {
-    await this.runtime.install();
+  async listProfiles(opts: { platform?: string, checkInstalled?: boolean } = {}): Promise<string[]> {
+    if (opts.checkInstalled ?? !this.runtime.checkManifest()) {
+      await this.runtime.install();
+    }
     return opts.platform ? Array.from(this.library.filter({ platform: opts.platform })) : this.library.ids();
   }
 
   /** Pick a random profile from the library.  Auto-installs on first call. */
-  async randomProfile(opts: { platform?: string } = {}): Promise<Profile> {
+  async randomProfile(opts: { platform?: string, checkInstalled?: boolean } = {}): Promise<Profile> {
     const ids = await this.listProfiles(opts);
     if (ids.length === 0) {
       throw new Error(`No bundled profiles found${opts.platform ? ` for platform=${opts.platform}` : ""}. Did you call ensureInstalled()?`);
@@ -73,8 +75,10 @@ export class ShardX {
    *  when `template` is omitted), enriched with randomized hardware +
    *  platform_version under a fresh unique id, and frozen to disk. Launch it
    *  with `launch(profile, { randomize: false })`. */
-  async createProfile(template?: string, opts: { platform?: string } = {}): Promise<Profile> {
-    await this.runtime.install();
+  async createProfile(template?: string, opts: { platform?: string, checkInstalled?: boolean } = {}): Promise<Profile> {
+    if (opts.checkInstalled ?? !this.runtime.checkManifest()) {
+      await this.runtime.install();
+    }
     const src = template == null
       ? await this.randomProfile({ platform: opts.platform })
       : this.library.load(template);
