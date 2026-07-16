@@ -37,6 +37,7 @@ export declare class Runtime {
         profilesDir?: string;
     });
     get manifestPath(): string;
+    get logPath(): string;
     get binaryPath(): string;
     get fingerprintsDir(): string;
     /** Per-profile user-data-dir root. Defaults to `<cacheDir>/profiles/`;
@@ -58,6 +59,7 @@ export declare class Runtime {
      *  it off disk, which can carry stale files from a previous version. On-disk
      *  detection is the fallback for legacy installs with no recorded version. */
     private effectiveInstalledVersion;
+    installLog(...args: any[]): void;
     private loadManifest;
     checkManifest(): boolean;
     private saveManifest;

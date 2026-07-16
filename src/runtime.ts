@@ -2,7 +2,8 @@
 // library from the ProxyShard CDN, extract into a per-user cache dir,
 // place Widevine inside the engine bundle, remember etags so subsequent
 // runs are zero-network. Mirrors src-tauri/src/runtime.rs in the launcher.
-import { closeSync, createWriteStream, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, rmSync, statSync, writeFileSync, chmodSync, copyFileSync, lstatSync } from "node:fs";
+import { closeSync, createWriteStream, appendFileSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, renameSync, rmSync, statSync, writeFileSync, chmodSync, copyFileSync, lstatSync } from "node:fs";
+import os from "node:os";
 import { mkdir } from "node:fs/promises";
 import { homedir, platform as osPlatform, arch as osArch } from "node:os";
 import { join, dirname, resolve } from "node:path";
@@ -110,6 +111,7 @@ export class Runtime {
   }
 
   get manifestPath(): string  { return join(this.root, "manifest.json"); }
+  get logPath(): string  { return join(this.root, "install.log"); }
   get binaryPath(): string    { return join(this.root, ...this.spec.binarySubpath); }
   get fingerprintsDir(): string {
     const d = join(this.root, "fingerprints");
@@ -163,6 +165,25 @@ export class Runtime {
     return local.installed_chromium_version ?? this.installedEngineVersion();
   }
 
+  installLog(...args: any[]) {
+    const file = this.logPath;
+  
+    mkdirSync(dirname(file), { recursive: true });
+  
+    appendFileSync(
+      file,
+      [
+        "===================================================",
+        new Date().toISOString(),
+        `pid=${process.pid}`,
+        `ppid=${process.ppid}`,
+        `host=${os.hostname()}`,
+        ...args,
+        "",
+      ].join("\n") + "\n"
+    );
+  }
+
   // ---- manifest ----
 
   private loadManifest(): Manifest {
@@ -182,6 +203,13 @@ export class Runtime {
 
   async install(opts: { force?: boolean } = {},attempt = 1): Promise<void> {
     const force = !!opts.force;
+    this.installLog(
+      "Runtime.install() ENTER",
+      `force=${opts.force}`,
+      `attempt=${attempt}`,
+      `binaryExists=${existsSync(this.binaryPath)}`,
+      new Error().stack
+    );
     if (this._checkedInProcess && !force) return;
     const local = this.loadManifest();
     const remote = await this.fetchManifest();
@@ -206,10 +234,24 @@ export class Runtime {
     if (!needBrowser && remote.chromiumVersion !== undefined) {
       needBrowser = this.effectiveInstalledVersion(local) !== remote.chromiumVersion;
     }
+    this.installLog(
+      "Decision",
+      `needBrowser=${needBrowser}`,
+      `installed=${this.installed}`,
+      `localVersion=${this.effectiveInstalledVersion(local)}`,
+      `remoteVersion=${remote.chromiumVersion}`,
+      `manifestExists=${existsSync(this.manifestPath)}`
+    );
+
     if (needBrowser) {
       // Wipe the old engine tree first so a leftover `<old>.manifest` / stale
       // libs can't linger beside the new ones (that pinned the detected version
       // → endless re-download). binarySubpath[0] is the engine root dir.
+      this.installLog(
+        "REMOVING ENGINE",
+        join(this.root, this.spec.binarySubpath[0]),
+        new Error("Engine removal").stack
+      );
       rmSync(join(this.root, this.spec.binarySubpath[0]), { recursive: true, force: true });
       local.browser_etag = await this.downloadAndExtract(this.spec.browser, this.root);
     }
