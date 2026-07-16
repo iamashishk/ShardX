@@ -1,28 +1,60 @@
 {
-  "name": "shardx-launcher",
-  "private": true,
-  "version": "0.1.10",
+  "name": "@proxyshard/shardx",
+  "version": "0.1.11",
+  "description": "Self-contained Node SDK for the ShardX anti-detect browser — downloads the engine + Widevine + fingerprint library on first use, launches isolated profiles.",
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "anti-detect",
+    "browser",
+    "fingerprint",
+    "chromium",
+    "scraping",
+    "multi-accounting",
+    "automation",
+    "playwright",
+    "cdp"
+  ],
+  "author": "ProxyShard",
+  "license": "MIT",
+  "homepage": "https://github.com/ProxyShard/ShardBrowser",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProxyShard/ShardBrowser.git",
+    "directory": "sdks/node"
+  },
+  "bugs": "https://github.com/ProxyShard/ShardBrowser/issues",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-dialog": "^2.7.1",
-    "@tauri-apps/plugin-opener": "^2",
-    "flag-icons": "^7.5.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "adm-zip": "^0.5.16",
+    "patchright": "^1.49.0",
+    "socks-proxy-agent": "^8.0.4",
+    "undici": "^6.19.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "typescript": "~5.8.3",
-    "vite": "^5.4.10"
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^20",
+    "typescript": "^5.4"
   }
 }
