@@ -124,7 +124,7 @@ export class Runtime {
     mkdirSync(d, { recursive: true });
     return d;
   }
-  get installed(): boolean    { return existsSync(this.binaryPath); }
+  get installed(): boolean    { return existsSync(this.binaryPath) || existsSync(this.manifestPath); }
   /** Engine chromium version (manifest-driven; set on install()). */
   get chromiumVersion(): string { return this._chromiumVersion; }
   /** GREASE brand from the manifest (e.g. "Not)A;Brand"); set on install(). */
